@@ -113,3 +113,7 @@ gs             0x33	51
 
 
 with general registers you can access either the entire 32bits, the lower 16 or selectively the bottom 2 8bit blocks
+BUT NOT ALL OF THEM
+the bottom 4 registers, ESP, EBP, ESI and EDI you can play with either top half or bottom half
+WHY IS THIS
+i do not know (yet)
