@@ -41,17 +41,17 @@ REGISTERS
 			- data pointer registers for memory operations (same as ESI) <<WILL BE USED FOR STRING MANIPULATION>>
 	- [*]segment registers  
 			  |------------------|
-		  CS|       Code       |               
+		        CS|       Code       |               
 			  |------------------|   
-	  	DS|       Data       |               
+	  	        DS|       Data       |               
 			  |------------------|    
-		  SS|       Stack      |               
+		        SS|       Stack      |               
 			  |------------------|   
-		  ES|       Data       |               
+		        ES|       Data       |               
 			  |------------------|    
-		  FS|       Data       |               
+		        FS|       Data       |               
 			  |------------------|  
-		  GS|       Data       |               
+		        GS|       Data       |               
 			  |------------------|     
 	- [*]flags, EIP
 		- If an instruction, gets set to a ZERO value, then the ZERO flag gets set
@@ -66,22 +66,22 @@ REGISTERS
 					- SSE3
 		- Is carved out of the FPU register	(FPU is 80bits wide, and the FIRST lower 64bits is assigned to MMX)
 			    |------------------|
-		 ST(0)|       MM0        |               
+		       ST(0)|       MM0        |               
 			    |------------------|   
-	  	 ST(1)|       MM1        |               
+	               ST(1)|       MM1        |               
 			    |------------------|    
-		 ST(2)|       MM2        |               
-		      |------------------|   
-		 ST(3)|       MM3        |               
-		  	  |------------------|    
-		 ST(4)|       MM4        |               
-		  	  |------------------|  
-		 ST(5)|       MM5        |               
-		  	  |------------------|
-		 ST(6)|       MM6        |               
+		       ST(2)|       MM2        |               
+		            |------------------|   
+		       ST(3)|       MM3        |               
+		   	    |------------------|    
+		       ST(4)|       MM4        |               
+		  	    |------------------|  
+		       ST(5)|       MM5        |               
+		  	    |------------------|
+		       ST(6)|       MM6        |               
 			    |------------------|
-		 ST(7)|       MM7        |               
-	  		  |------------------|			
+		       ST(7)|       MM7        |               
+	  		    |------------------|			
 	- [*]XMM registers
 		- Even bigger register (128bits) (REST TO BE COVERED LATER DURING ASSEMBLY PROGRAMMING)
 	
@@ -112,4 +112,4 @@ fs             0x0	0
 gs             0x33	51
 
 
-i r eax
+with general registers you can access either the entire 32bits, the lower 16 or selectively the bottom 2 8bit blocks
