@@ -39,7 +39,7 @@ REGISTERS
 			- data pointer registers for memory operations <<WILL BE USED FOR STRING MANIPULATION>>
 		- EDI <AS ABOVE> ETC
 			- data pointer registers for memory operations (same as ESI) <<WILL BE USED FOR STRING MANIPULATION>>
-	- [*]segment registers  
+	- [*]segment registers  (when looking at the stack remember these via the S on the end)
 			  |------------------|
 		        CS|       Code       |               
 			  |------------------|   
@@ -111,9 +111,14 @@ es             0x7b	123
 fs             0x0	0
 gs             0x33	51
 
+to view the next instruction, execute "disassemble $eip"
 
 with general registers you can access either the entire 32bits, the lower 16 or selectively the bottom 2 8bit blocks
 BUT NOT ALL OF THEM
 the bottom 4 registers, ESP, EBP, ESI and EDI you can play with either top half or bottom half
 WHY IS THIS
 i do not know (yet)
+set-disassembly-flavor intel
+
+by default gdb does not show you FPU
+to get this i all-r or info all-registers
