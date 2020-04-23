@@ -1,0 +1,38 @@
+The kernel is a computer program at the core of a computer's operating system with 
+complete control over everything in the system. 
+It is the "portion of the operating system code that is always resident in memory". 
+It facilitates interactions between hardware and software components.
+
+HOW DOES A SYSTEM CALL WORK:
+Example:
+User space program generates an interrupt at 0x80, once the interupt is generated the CPU
+will check the interrupt handlers table, and then invoke the system call handler.
+Now the system call handler is a kernel mode program, it will go and fogure out the system call routine
+for the specific system call EG if the program now needs to print output or read from input these are seperate system calls.
+
+Can also invoke system calls with SYSENTER instruction NOTE modern implementations use Virtual Dynamic Shared Object (REQUIRES HIGHER LEVEL KERNEL AND LOADER KNOWLEDGE)
+For exploitation we almost exclusively use x80 (#define __NR_getgroups           80)
+
+Where are systemcalls defined???
+in /usr/include/i386-linux-gnu/asm/unistd_32.h
+
+In our hello world program, to findout what to do in order to print Hello World we invoke man 2 write, which tells us which header to include and usage:
+
+SYNOPSIS
+       #include <unistd.h>
+                 
+       ssize_t write(int fd, const void *buf, size_t count);
+{EAX=syscall nmb}^        ^{EBX=STDOUT}   ^{ECX=string} ^{EDX=length of string}
+ssize_t write(int fd, const void *buf, size_t count);
+
+EAX		System Call Number (for write, 4) Return Value always goes in
+
+EBX		2nd Argument
+
+ECX		3rd Argument
+
+EDX		4th Argument
+
+ESI		5th Argument
+
+EDI		6th Argument
