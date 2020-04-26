@@ -44,7 +44,7 @@ section .data
 ;
 ;we can step through each register with stepi
 ;
-;this will execute the current instruction and step to the next one, you will see that the original pending
+;this will execute the current instruction and step to the next one, check  info regsisters/i r and you will see that the original pending
 ;operation has completed in hello world as the value "4" has been moved into eax 
 ;(the register for holding operands from calls, thus telling it we use syscall "4" (write))
 ;
