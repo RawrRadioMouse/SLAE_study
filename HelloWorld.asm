@@ -82,8 +82,8 @@ section .data
 ;   0x0804808f <+15>:	mov    edx,0xc
 ;=> 0x08048094 <+20>:	int    0x80
 ;   0x08048096 <+22>:	mov    eax,0x1
-v   0x0804809b <+27>:	mov    ebx,0x5
-v   0x080480a0 <+32>:	int    0x80
+;   0x0804809b <+27>:	mov    ebx,0x5
+;   0x080480a0 <+32>:	int    0x80
 ;End of assembler dump.
 ;(gdb) 
 ;(gdb) stepi
