@@ -24,9 +24,22 @@ _start:
 
 section .data ;used to store global initialised variables **.bss is used to store UNinitialised (db is initialised buffer: resb64 is UN)
 
+	var1:	db 0xAA			;databyte (8 bits)
+	var2:	db 0xBB, 0xCC, 0xDD	;databytes defined as BB, CC and DD (3x 8bits)
+	var3:	dw 0xEE			;dataword defined as EE and will have 00 at the end to complete (16bits, misisng bits are zeroed)
+	var4:   dd 0xAABBCCDD		;doubleword (4 bytes, or 32bits)
+	var5:   dd 0x112233		;doubleword (4 bytes, or 32bits)
+	var6:   TIMES 6 db 0xFF		;databytes taking advantage of TIMES, will be 48bits
+	
 	message: db "Hello World!"
 	mlen	equ   $-message 
   
+  
+  section .bss
+
+	var7:	resb 100		;reserve byte 100
+	var8:   resw 20			;reserverword 20
+	
   ; compile with nasm -f elf32 -o HelloWorld.o HelloWorld.asm
   ; create linker ld -o HelloWorld HelloWorld.o
   
