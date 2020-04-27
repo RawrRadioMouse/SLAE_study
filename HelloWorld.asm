@@ -45,6 +45,7 @@ section .data ;used to store global initialised variables **.bss is used to stor
   
   
 ;when analysing in gdb, if we break at _start and then dissamble we can see all the register moves as below:
+;***TO FIND FUNCTIONS info functions***
 ;(gdb) disassemble 
 ;Dump of assembler code for function _start:
 ;=> 0x08048080 <+0>:	mov    eax,0x4
