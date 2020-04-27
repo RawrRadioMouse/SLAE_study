@@ -3,7 +3,8 @@
 
 global _start
 
-section .text
+section .text ;also known as code segment, essentially this corresponds to the ".text" portion of binary. It contains machine instructions.
+              ;it is marked as r+x and will throw access violation if a write attempt is made. Size is fixed at runtime.
 
 _start:
 	; all we are doing here is moving the hex values into registers
@@ -21,10 +22,10 @@ _start:
 	int 0x80
 
 
-section .data
+section .data ;used to store global initialised variables **.bss is used to store UNinitialised (db is initialised buffer: resb64 is UN)
 
 	message: db "Hello World!"
-	mlen	equ   $-message
+	mlen	equ   $-message 
   
   ; compile with nasm -f elf32 -o HelloWorld.o HelloWorld.asm
   ; create linker ld -o HelloWorld HelloWorld.o
