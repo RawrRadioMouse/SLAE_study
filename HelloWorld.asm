@@ -89,8 +89,14 @@ section .data
 ;(gdb) stepi
 ;Hello World!0x08048096 in _start ()
 ;(gdb) 
-
-
+;
+;
+;
+;
+;one last info regsisters will now show the below, "12" is in both eax and edx now as 12 is the retuen value of the write system call,
+;as the return vale of write is the number of bytes it has written (it writes the bytes, and then returns how many it has written)
+;
+;next instruction puts syscall "1" (exit) inside eax, and then obviously interreupt 0x80 is the next to be invoked so we can exit
 
 
 
