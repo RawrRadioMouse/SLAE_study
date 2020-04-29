@@ -115,7 +115,7 @@ section .data ;used to store global initialised variables **.bss is used to stor
 ;next instruction puts syscall "1" (exit) inside eax, and then obviously interreupt 0x80 is the next to be invoked so we can exit
 ;
 ;
-;Throughout the steps one can get info on data by running info variables, this will giuve var names aswell as their address
+;Throughout the steps one can get info on data by running info variables, this will give var names aswell as their address
 ;then examine the var with x/xb <address> OR x/xb &<varname> 
 ;***NOTE this will examine the specified number of bites at that address, so x/4xb will examine the next 4bits, if var1 has only onebit,
 ;it will examine the proceeding bits in next mem address(es)
