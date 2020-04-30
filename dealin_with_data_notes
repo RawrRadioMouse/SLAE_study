@@ -80,4 +80,6 @@ XCHG can exchange data:
 LEA can load effective address load pointer address
 	- EXAMPLE: LEA EAX, [label] - Will load the pointer inside EAX, (the exact mem location where label is defined)
 	
-	
+to examine a register, use examine command x
+	- eg info variables
+	- /x <variable> OR /x &<variable> to also return the exact address
