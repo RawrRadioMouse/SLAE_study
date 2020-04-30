@@ -36,3 +36,20 @@ EDX		4th Argument
 ESI		5th Argument
 
 EDI		6th Argument
+
+
+gdb -nx <binary>
+set-disassembly-flavor intel
+break <break>
+run
+disassemble $eip (this will disassemble eip in any case without that arg)
+print/x $<register> OR display $eax   ;to look at register
+
+* To step through registers after hitting break: stepi
+* this will execute th current instruction and step to the next one, you will see that the original pending
+operation has completed in hello world as the value "4" has been moved into eax (the register for holding operands from calls, thus telling it we use syscall "4" (write))
+
+So, We can check what is next with disassemble, then stepi, and info regsisters/i r again to see it has completed the instruction EG if the instruction was
+"mov    ecx,0x80490a4" (in our program this was defined as mov ecx, message, when it runs in assembly it looks at the memory address where our "message" variable is stored, 
+when disassembling, we can confirm conents of message with x/s <memaddress>),
+ then we should see that memory address
