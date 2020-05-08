@@ -255,3 +255,140 @@ to examine a register, use examine command x
 	- /x <variable> OR /x &<variable> to also return the exact address
 	
 *When stepping through data, we can 
+
+********************STACK NOTES**************************
+
+stack based exploits work via call and ret insts. when a function is called, the return address 
+of the next inst is pushed to the stack, begining the stack frame. when the function has completed, 
+the ret inst pops the return address from the stack and jumps EIP back there.
+
+by overwriting the stored return address on the stack before the ret instruction, we can take control of a programs execution.
+
+Can push 16 or 32bit values on the stack 
+They can be in register or reference memory
+b - byte
+h - halfword (16-bit value)
+w - word (32-bit value)
+g - giant word (64-bit value)
+Examine top of stack
+this can also be used to address inline string data. if the string is placed directly after a call inst, the address of 
+the string will be pushed to the stack as the return address. instead of calling a function, we can jump straight past 
+the string to a pop inst that will take the address off the stack and into a register.
+
+hook-stop
+
+>x/8xb $esp (sample displayed as 8 consecutive bytes)
+>x/4xh $esp (sample split into 4 halfword chunks)
+>x/2xw $esp (sample split into 2 word chunks)
+>disassemble $eip,+10
+>end
+
+
+
+
+after setting hook and stepping through first instruction (mov 66778899 into the eax register) we get below:
+
+(gdb) stepi
+0xbffff3b0:	0x01	0x00	0x00	0x00	0x28	0xf5	0xff	0xbf (((memory location pointed to by the top of the stack)))
+0xbffff3b0:	0x0001	0x0000	0xf528	0xbfff
+0xbffff3b0:	0x00000001	0xbffff528
+Dump of assembler code from 0x8048085 to 0x804808f:
+=> 0x08048085 <_start+5>:	mov    ebx,0x0
+   0x0804808a <_start+10>:	mov    ecx,0x0
+End of assembler dump.
+0x08048085 in _start ()
+3: /x $ecx = 0x0
+2: /x $ebx = 0x0
+1: /x $eax = 0x66778899
+(gdb) 
+
+When we reach push ax, we can see that the top of the stack now contains the contents of pseudoregister ax
+Dump of assembler code from 0x804808f to 0x8048099:
+=> 0x0804808f <_start+15>:	push   ax
+   0x08048091 <_start+17>:	pop    bx
+   0x08048093 <_start+19>:	push   eax
+   0x08048094 <_start+20>:	pop    ecx
+   0x08048095 <_start+21>:	push   WORD PTR ds:0x80490b0
+End of assembler dump.
+0x0804808f in _start ()
+3: /x $ecx = 0x0
+2: /x $ebx = 0x0
+1: /x $eax = 0x66778899
+(gdb) stepi
+0xbffff3ae:	0x99	0x88	0x01	0x00	0x00	0x00	0x28	0xf5
+0xbffff3ae:	0x8899	0x0001	0x0000	0xf528
+0xbffff3ae:	0x00018899	0xf5280000
+
+
+when displaying with bytes, value will be reversed, if display via word, it will display true to source
+
+****************************EFLAGS******************************
+Bit	Label	EFLAGS Flag Description
+ 0	CF	Carry Flag: Set by arithmetic instructions which generate either a carry or borrow. 
+			Set when an operation generates a carry to or a borrow from a destination operand.
+ 2	PF	Parity flag: Set by most CPU instructions if the least significant (aka the low-order bits) of the destination operand contain an even number of 1's.
+ 4	AF	Auxiliary Carry Flag: Set if there is a carry or borrow involving bit 4 of EAX. Set when a CPU
+			instruction generates a carry to or a borrow from the low-order 4 bits of an operand. This flag is used for binary coded decimal (BCD) arithmetic.
+ 6	ZF	Zero Flag: Set by most instructions if the result an operation is binary zero.
+ 7	SF	Sign Flag: Most operations set this bit the same as the most significant bit (aka high-order bit) of the result. 0 is positive, 1 is negative.
+ 8	TF	Trap Flag: (sometimes named a Trace Flag.) Permits single stepping of programs. After executing a single instruction, the processor generates an internal 
+			exception 1. When Trap Flag is set by a program, the processor generates a single-step interrupt after each instruction.
+			A debugging program can use this feature to execute a program one instruction at a time.
+ 9	IF	Interrupt Enable Flag: when set, the processor recognizes external interrupts on the INTR pin. 
+			When set, interrupts are recognized and acted on as they are received. The bit can be cleared to turn off interrupt processing temporarily.
+10	DF	Direction Flag: Set and cleared using the STD and CLD instructions. It is used in string processing.
+			When set to 1, string operations process down from high addresses to low addresses. If cleared, string operations process up from low addresses to high addresses.
+11	OF	Overflow Flag: Most arithmetic instructions set this bit, indicating that the result was too large to fit
+			in the destination. When set, it indicates that the result of an operation is too large or too small to fit in the destination operand.
+12-13	IOPL	Input/Output privilege level flags: Used in protected mode to generate four levels of security.
+14	NT	Nested Task Flag: Used in protected mode. When set, it indicates that one system task has invoked another via a CALL Instruction, rather than a JMP.
+16	RF	Resume Flag: Used by the debug registers DR6 and DR7. It enables you to turn off certain exceptions while debugging code.
+17	VM	Virtual 8086 Mode flag: Permits 80386 to behave like a high speed 8086.
+
+		^^^FOR NOW we only worry about the carry flag^^^
+		The carry flag will be set if there has been an extra value passed on (overflow)
+		Carry flag can be interacted with:
+			clc - clear carry flag
+			stc - set carry flag
+			cmc - compliment carry flag (inverts current carry flag status EG if it is set it will UNset, vice verce)
+	
+****NOTE***
+	When you want to show eflags in a hook-stop, you must use print NOT display
+
+
+*******************************ARITHEMTIC******************************
+Arithmatic operations typically affect the status flags
+
+There are 4 main arithmetic instructions we need to be aware of:
+	ADD destination, source
+	ADC destination, source (same as above but set carry flag)
+	SUB and SBB (subtract and subtract borrow - which means subtract and then borrow one, dependant on carry flag being set)
+	INC and DEC (Increment and decrement by 1)
+	
+Do make this simple; mov REPLACES the value, and ADD "adds" to the value, eg:
+		$eax = 0x00
+		next inst = add al,0x22
+		$eax = 0x22
+		next inst = add al,0x11
+		$eax = 0x33		
+		next inst = mov ax,0x1122
+		$eax = 0x1122
+		next inst = add ax,0x3344
+		$eax = 0x4466
+		
+		**same is true with starting eax value of 0x10000000
+		next inst = add al,0x22
+		$eax = 0x10000022
+		next inst = add al,0x11
+		$eax = 0x10000033		
+		**ETC
+		
+When multiplying
+	the first number is held in the relevent register, second number can be referenced in a memory location or register
+	relevent register you say? yes.
+					multiplying 8bit numbers, will use AL, 16 will use AX, and 32 will use EAX
+						AX and EAX results will be stored as such: Upper half in (E)DX, lower half in (E)AX
+	If the result is larger than the register, the OF (overflow) and CF (carry) flags will be set.
+	
+***********************************************************
+
