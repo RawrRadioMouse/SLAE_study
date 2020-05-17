@@ -452,11 +452,12 @@ End of assembler dump.
 first half of answer contained in edx and second half (overflow) in EAX.
 
 ### division
-```
-For division:
 
+For division:
+```
     AX
     /
     r/m8
 Quotant in AL
 Remainder in AH
+```
