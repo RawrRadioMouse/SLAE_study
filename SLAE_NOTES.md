@@ -229,7 +229,8 @@ Instruction
 ```        
 gdb -nx <binary>
 set-disassembly-flavor intel
-break <break>
+break <break> OR if where you want to break is further down: break <*&break +X> (* is for break & is address)
+        OR simply *0x<address>
 run
 disassemble $eip (this will disassemble eip in any case without that arg)
 print/x $<register> OR display $eax   ;to look at register
@@ -288,50 +289,7 @@ When interacting with variables (MOV, ADD etc), they will appear in the disassem
         => 0x080480a5 <_start+37>:    add    BYTE PTR ds:0x804910c,0x11
         ***NOTE: When doing it this way, we are manipulating memory DIRECTLY, WITHOUT any medium such as registry***
 
-## Arithmetic
 
-Arithmatic operations typically affect the status flags
-
-There are 4 main arithmetic instructions we need to be aware of:
-```
-	ADD destination, source
-	ADC destination, source (same as above but set carry flag)
-	SUB and SBB (subtract and subtract borrow - which means subtract and then borrow one, dependant on carry flag being set)
-	INC and DEC (Increment and decrement by 1)
-```	
-Do make this simple; mov REPLACES the value, and ADD "adds" to the value, eg:
-```
-		$eax = 0x00
-		next inst = add al,0x22
-		$eax = 0x22
-		next inst = add al,0x11
-		$eax = 0x33		
-		next inst = mov ax,0x1122
-		$eax = 0x1122
-		next inst = add ax,0x3344
-		$eax = 0x4466
-		
-		**same is true with starting eax value of 0x10000000
-		next inst = add al,0x22
-		$eax = 0x10000022
-		next inst = add al,0x11
-		$eax = 0x10000033		
-		**ETC
-```		
-#### When multiplying
-the first number is held in the relevent register, second number can be referenced in a memory location OR register.
-relevent register you say? yes.
-multiplying 8bit numbers, will use AL, 16 will use AX, and 32 will use EAX
-AX and EAX results will be stored as such: Upper half in (E)DX, lower half in (E)AX
-If the result is larger than the register, the OF (overflow) and CF (carry) flags will be set.
-	
-
-
-Implied registers
-
-Why eax mov al, 0x10
-	mov bl, 0x2
-	mul bl
 
 ## Stack
 
@@ -363,8 +321,6 @@ define hook-stop
 >disassemble $eip,+10
 >end
 ```
-
-
 
 after setting hook and stepping through first instruction (mov 66778899 into the eax register) we get below:
 ```
@@ -403,3 +359,104 @@ End of assembler dump.
 ```
 
 when displaying with bytes, value will be reversed, if display via word, it will display true to source
+
+## Arithmetic
+
+Arithmatic operations typically affect the status flags
+
+There are 4 main arithmetic instructions we need to be aware of:
+```
+	ADD destination, source
+	ADC destination, source (same as above but set carry flag)
+	SUB and SBB (subtract and subtract borrow - which means subtract and then borrow one, dependant on carry flag being set)
+	INC and DEC (Increment and decrement by 1)
+```	
+Do make this simple; mov REPLACES the value, and ADD "adds" to the value, eg:
+```
+		$eax = 0x00
+		next inst = add al,0x22
+		$eax = 0x22
+		next inst = add al,0x11
+		$eax = 0x33		
+		next inst = mov ax,0x1122
+		$eax = 0x1122
+		next inst = add ax,0x3344
+		$eax = 0x4466
+		
+		**same is true with starting eax value of 0x10000000
+		next inst = add al,0x22
+		$eax = 0x10000022
+		next inst = add al,0x11
+		$eax = 0x10000033		
+		**ETC
+```		
+#### When multiplying
+the first number is held in the relevent register, second number can be referenced in a memory location OR register.
+relevent register you say? yes.
+multiplying 8bit numbers, will use AL, 16 will use AX, and 32 will use EAX
+AX and EAX results will be stored as such: Upper half in (E)DX, lower half in (E)AX
+If the result is larger than the register, the OF (overflow) and CF (carry) flags will be set.
+	
+Implied registers
+```
+    mov al, 0x10
+	mov bl, 0x2
+	mul bl
+
+$AL = 0xff (255)
+$BL = 0x2
+$AX = 0xff
+```
+
+mul bl (when you multiply it implies that the first value sits one register up, so it will look at AL in this case)
+
+As AL already contains the highest possible value, we get an overflow and carry
+
+```
+$AL = 0xfe
+$BL = 0x2
+$AX = 0x1fe (510)
+
+(gdb) print $eflags
+$20 = [ CF SF IF OF ]
+```
+
+##### For 32 bit multiplication:
+
+```
+Dump of assembler code from 0x80480c5 to 0x80480d4:
+=> 0x080480c5 <_start+69>:	mul    ebx
+   0x080480c7 <_start+71>:	mul    BYTE PTR ds:0x8049100
+   0x080480cd <_start+77>:	mul    WORD PTR ds:0x8049101
+End of assembler dump.
+0x080480c5 in _start ()
+4: $eflags = [ PF IF ]
+3: /x $ebx = 0x55667788
+2: /x $eax = 0x11223344
+1: /x $edx = 0x0
+(gdb) nexti
+Dump of assembler code from 0x80480c7 to 0x80480d6:
+=> 0x080480c7 <_start+71>:	mul    BYTE PTR ds:0x8049100
+   0x080480cd <_start+77>:	mul    WORD PTR ds:0x8049101
+   0x080480d4 <_start+84>:	mul    DWORD PTR ds:0x8049103
+End of assembler dump.
+0x080480c7 in _start ()
+4: $eflags = [ CF IF OF ]
+3: /x $ebx = 0x55667788
+2: /x $eax = 0x117d820
+1: /x $edx = 0x5b736a6
+(gdb)
+``` 
+
+55667788 x 11223344 = 624,778,734,443,072 or 5b736a6117d820 in hex
+first half of answer contained in edx and second half (overflow) in EAX.
+
+### division
+```
+For division:
+
+    AX
+    /
+    r/m8
+Quotant in AL
+Remainder in AH
