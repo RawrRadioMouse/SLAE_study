@@ -26,7 +26,7 @@ CPU IA-32 has 3 modes of operation
     - Flat model
         - memory address is linear accross the address space, can access any memory directly
     - Segmented model
-        - use a legment selector and an offset in that segment to figure out how to access specific locations (MORE READING: https://superuser.com/questions/318804/understanding-flat-memory-model-and-segmented-memory-model)
+        - use a segment selector and an offset in that segment to figure out how to access specific locations (MORE READING: https://superuser.com/questions/318804/understanding-flat-memory-model-and-segmented-memory-model)
     - real-address mode model
         -
 
@@ -308,13 +308,30 @@ h - halfword (16-bit value)
 w - word (32-bit value)
 g - giant word (64-bit value)
 ```
+#### why the heck do we run code waith a variable defined as a word, but we examine in GDB as a HALF????
+
+SO gdb knows halfword as 16 bits
+C language knows word as 16 bits
+so you have to manually convert.
+```
+Windows/C:
+BYTE - 8 bits, unsigned
+WORD - 16 bits, unsigned
+DWORD - 32 bits, unsigned
+QWORD - 64 bits, unsigned
+GDB:
+Byte
+Halfword (two bytes).
+Word (four bytes).
+Giant words (eight bytes).
+```
 Examine top of stack
 this can also be used to address inline string data. if the string is placed directly after a call inst, the address of 
 the string will be pushed to the stack as the return address. instead of calling a function, we can jump straight past 
 the string to a pop inst that will take the address off the stack and into a register.
 ```
 define hook-stop
-
+>x/20x $sp
 >x/8xb $esp (sample displayed as 8 consecutive bytes)
 >x/4xh $esp (sample split into 4 halfword chunks)
 >x/2xw $esp (sample split into 2 word chunks)
@@ -370,7 +387,8 @@ There are 4 main arithmetic instructions we need to be aware of:
 	ADC destination, source (same as above but set carry flag)
 	SUB and SBB (subtract and subtract borrow - which means subtract and then borrow one, dependant on carry flag being set)
 	INC and DEC (Increment and decrement by 1)
-```	
+```
+
 Do make this simple; mov REPLACES the value, and ADD "adds" to the value, eg:
 ```
 		$eax = 0x00
@@ -389,7 +407,8 @@ Do make this simple; mov REPLACES the value, and ADD "adds" to the value, eg:
 		next inst = add al,0x11
 		$eax = 0x10000033		
 		**ETC
-```		
+```
+
 #### When multiplying
 the first number is held in the relevent register, second number can be referenced in a memory location OR register.
 relevent register you say? yes.
@@ -421,8 +440,7 @@ $AX = 0x1fe (510)
 $20 = [ CF SF IF OF ]
 ```
 
-##### For 32 bit multiplication:
-
+### 32 bit multiplication Example:
 ```
 Dump of assembler code from 0x80480c5 to 0x80480d4:
 => 0x080480c5 <_start+69>:	mul    ebx
@@ -446,7 +464,7 @@ End of assembler dump.
 2: /x $eax = 0x117d820
 1: /x $edx = 0x5b736a6
 (gdb)
-``` 
+```
 
 55667788 x 11223344 = 624,778,734,443,072 or 5b736a6117d820 in hex
 first half of answer contained in edx and second half (overflow) in EAX.
@@ -454,10 +472,117 @@ first half of answer contained in edx and second half (overflow) in EAX.
 ### division
 
 For division:
-```
+
     AX
     /
     r/m8
 Quotant in AL
 Remainder in AH
-```
+
+#### Logical Operations
+
+All BITWISE operations (they do not look at the values, they look at the BITS)
+With BOOLEAN when matching up the two sets of bits, as soon as one pair hit AND or OR or XOR etc it will be flagged as true
+
+AND
+    Destination can be in R or M
+    Source can be in R or M or an Immediate Value
+    Cannot do AND between 2 memory locations
+    (The AND operator is a Boolean operator used to perform a logical conjunction on two expressions -- Expression 1 And Experession 2. AND operator returns a value of TRUE if both its operands are TRUE, and FALSE otherwise.)
+    EG
+    so when you and bits like this
+    0x0010
+    0x0001
+    --------
+    0x0000
+
+OR
+    (The OR operator is a Boolean operator which would return the value TRUE or Boolean value of 1 if either or both of the operands are TRUE or have Boolean value of 1.)
+    0x0001
+    0x0100
+    ---------
+    0x0101
+
+XOR
+
+    (The XOR or the exclusive OR operator returns the Boolean value of 1 or TRUE if the number of the inputs having a value of 1 or TRUE is odd.)
+    0x0101
+    0x0110
+    ---------
+    0x0011
+
+NOT
+
+    (checks if a value is false EG a=0; if (!a) printf("this will print"))
+
+    var2	dw	0xbbcc
+    and word [var2], 0x1122
+
+    comes out as <var2>:	0x1100
+     bitmasking 
+xoring == encoding
+modify the logical program
+
+Righto so... bitwise and between two hexadecimal values
+step 1
+convert each value to its binary representation... so
+0xBBCC  = 1011 1011 1100 1100
+0x1122   = 0001 0001 0010  0010
+==========================
+0x1100   = 0001 0001 0000  0000
+8:50
+step 2 do that :point_up:
+step 3 convert back to hex
+
+#### control instructions
+
+control instructions rely on flags
+
+branching
+    conditional
+      Uses flags to determine if it will JMP
+      EG JZ == jump if ZERO flag set
+      can't be used with far Jump
+    unconditional
+      JMP
+        near (current segment)
+        far  (in another segment)
+
+
+        small things in the stack, big in the heap
+
+#### procedures and preservation
+
+WE PRESERVE states becuase in a complicated program we need to retain the state while different tasks are running
+https://en.wikipedia.org/wiki/Function_prologue
+https://stackoverflow.com/questions/1395591/what-is-exactly-the-base-pointer-and-stack-pointer-to-what-do-they-point 
+
+set of operations grouped together
+called from  different places of code
+In NASM defined by labels
+EGs
+    CALL <procedure_name>
+
+    <code>
+    <code>
+    <code>
+    
+    RET ; tells CPU to go back to the next instruction line
+    
+To preserve the registers and flags we push them all on and then pop them all off
+
+    pushad
+    pushfd
+    Call program
+    popfd
+    popad
+
+Preserve frame pointer
+
+    push ebp ; marks start of functions stack frame
+    mov ebp, esp ; we preserve where we were to enable us to return
+
+restore
+
+    move esp, ebp
+    pop ebp
