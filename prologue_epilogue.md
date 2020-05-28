@@ -30,7 +30,7 @@ _start:
 
 PrintHelloWorld:
 
-	; **preserve registers and flags (make way for process variables, but obviously we want to pic up where we left off once the proc is finished right?)**	
+	; <b>**preserve registers and flags (make way for process variables, but obviously we want to pic up where we left off once the proc is finished right?)**<b>	
 	pushad ; #### we push all the current values for safe keeping
 	pushfd ; #### same with flag states
 
