@@ -520,17 +520,21 @@ bitmasking
 xoring == encoding
 modify the logical program
 
-
+```
 Righto so... bitwise and between two hexadecimal values
+
 step 1
+
 convert each value to its binary representation... so
+
 0xBBCC  = 1011 1011 1100 1100
 0x1122   = 0001 0001 0010  0010
 ==========================
 0x1100   = 0001 0001 0000  0000
-8:50
+
 step 2 do that :point_up:
 step 3 convert back to hex
+```
 
 ## control instructions
 
