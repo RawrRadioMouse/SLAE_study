@@ -1,4 +1,4 @@
-# GENERAL CPU AND SYSTEM NOTES
+## GENERAL CPU AND SYSTEM NOTES
 lscpu cpu architecture
 cat /proc/cpuinfo - what we are looking for is the flags, this lets us know the capability of the cpu (the instructions it supports)
 
@@ -35,7 +35,7 @@ complete control over everything in the system.
 It is the "portion of the operating system code that is always resident in memory". 
 It facilitates interactions between hardware and software components.
 
-### HOW DOES A SYSTEM CALL WORK:
+## HOW DOES A SYSTEM CALL WORK:
 Example:
 User space program generates an interrupt at 0x80, once the interupt is generated the CPU
 will check the interrupt handlers table, and then invoke the system call handler.
@@ -157,7 +157,7 @@ EDI        6th Argument
         - Even bigger register (128bits) (REST TO BE COVERED LATER DURING ASSEMBLY PROGRAMMING)
     
 
-# DEALING WITH DATA
+## DEALING WITH DATA
 
 _SQUARE BRACKETS MEANS A REFERENCE!!!_
 
@@ -178,7 +178,7 @@ the whole 32 bits are dedicated to storing the value
 #### signed double word
 first 31bits are dedicated, and the last (most significant bit) is used to store the sign which can be pos or neg
 
-#### defining initialised data
+## defining initialised data
 ```
 db = definedbyte
 dw = definedword
@@ -194,7 +194,7 @@ Special tokens {below are used to figure out the offset of the current instructi
 $ - evaluates to the current line
 $$ - evaluates to the neginning of current section
 
-#### Little endian
+## Little endian
 Lower byte gets stored in lower memory
 
 higher in high memory register
@@ -438,7 +438,7 @@ $AX = 0x1fe (510)
 $20 = [ CF SF IF OF ]
 ```
 
-### 32 bit multiplication Example:
+#### 32 bit multiplication Example:
 ```
 Dump of assembler code from 0x80480c5 to 0x80480d4:
 => 0x080480c5 <_start+69>:	mul    ebx
@@ -466,7 +466,7 @@ End of assembler dump.
 55667788 x 11223344 = 624,778,734,443,072 or 5b736a6117d820 in hex
 first half of answer contained in edx and second half (overflow) in EAX.
 
-### division
+#### division
 
 For division:
 
@@ -476,7 +476,7 @@ For division:
 Quotant in AL
 Remainder in AH
 
-#### Logical Operations
+## Logical Operations
 
 All BITWISE operations (they do not look at the values, they look at the BITS)
 With BOOLEAN when matching up the two sets of bits, as soon as one pair hit AND or OR or XOR etc it will be flagged as true
@@ -532,7 +532,7 @@ convert each value to its binary representation... so
 step 2 do that :point_up:
 step 3 convert back to hex
 
-#### control instructions
+## control instructions
 
 control instructions rely on flags
 
@@ -549,7 +549,7 @@ branching
 
         small things in the stack, big in the heap
 
-#### procedures and preservation
+## procedures and preservation
 
 WE PRESERVE states becuase in a complicated program we need to retain the state while different tasks are running
 https://en.wikipedia.org/wiki/Function_prologue
@@ -585,7 +585,7 @@ restore
     move esp, ebp
     pop ebp
 
-#### String instructions
+## String instructions
 
 For MOVS and CMPS It is assumed that the source string is referenced by ESI and the destination is sourced by EDI ; they rely on direction flag DF (this being set means copying occurs high to low memory)
 
@@ -596,7 +596,7 @@ To examine a string in ascii,
     x/w $sp
     x/s <address>
 
-### Common string instructions
+#### Common string instructions
 
 | Instruction | Description |
 | :--- | :--- |
@@ -606,7 +606,7 @@ To examine a string in ascii,
 | STOS\* | Store string data from the accumulator into a string addressed by `edi` |
 | LODS\* | Load memory addressed by `esi` into the accumulator |
 
-## Repeat prefixes
+#### Repeat prefixes
 
 You can repeat string operations using a _repeat prefix_ - like the `loop*` instructions they use the `ecx` register as a counter. E.g.
 
@@ -617,7 +617,7 @@ mov    ecx, 10
 rep    movsb
 ```
 
-#### Libc in nasm
+## Libc in nasm
 
 Remember that arguments get pushed on in reverse order
 
@@ -626,13 +626,13 @@ Remember that arguments get pushed on in reverse order
 
 To maintain a proper state for ESP: after libc call returns, adjust the stack accordingly
 
-### Very important to note:
+#### Very important to note:
 > Use the extern instruction to define which functions you want to use from other libraries, at the top of your program
 > In this instance, the calling convention is to place arguments on the stack in reverse order
 > Don't mess up the stack pointer! After your function call returns, you will need to recall the location of the stack pointer; "you use some memory on the stack - you take it away, want some back? add"
 > Rather than using the low level linker ld, use gcc to perform the linking stage, as this has better support for linking libc. This means that by default, we would need to use an entry point of main instead of _start
 
-### Stack adjustment (add 0x4)
+#### Stack adjustment (add 0x4)
 
 in simple terms, we are essentially pushing the SP back up to where it was prior to calling.
 We pretty much only need to adjust stack for instructions involving args, as the args go ontop of the intsruction, the SP needs to get back to the top
@@ -652,7 +652,7 @@ main:
 	call exit
 ```
 
-#### Shellcoding: basics
+## Shellcoding: basics
 
 Essentially machine code with a specific purpose EG
     spawn a shell
@@ -670,7 +670,7 @@ Your shellcode can be added into an executable which means that:
     bad chars not a concern
     replace executable functionality
 
-#### Shellcoding: JMP-CALL-POP
+## Shellcoding: JMP-CALL-POP
 
 To avoid crashes and such, we exploit jmp-call-pop.
 We do NOT at any point want to be referencing an address in our shellcode EG moving "Hello World!" into ecx, we circumvent by by performing a short jump to a call function and within that we POP into ECX, with the next instruction on the stack being the definition of the variable "message: db "Hello World!", 0xA - we are able to not care what the address is.
