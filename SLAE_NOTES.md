@@ -387,8 +387,7 @@ There are 4 main arithmetic instructions we need to be aware of:
 	ADC destination, source (same as above but set carry flag)
 	SUB and SBB (subtract and subtract borrow - which means subtract and then borrow one, dependant on carry flag being set)
 	INC and DEC (Increment and decrement by 1)
-```
-
+```	
 Do make this simple; mov REPLACES the value, and ADD "adds" to the value, eg:
 ```
 		$eax = 0x00
@@ -407,8 +406,7 @@ Do make this simple; mov REPLACES the value, and ADD "adds" to the value, eg:
 		next inst = add al,0x11
 		$eax = 0x10000033		
 		**ETC
-```
-
+```		
 #### When multiplying
 the first number is held in the relevent register, second number can be referenced in a memory location OR register.
 relevent register you say? yes.
@@ -464,8 +462,7 @@ End of assembler dump.
 2: /x $eax = 0x117d820
 1: /x $edx = 0x5b736a6
 (gdb)
-```
-
+``` 
 55667788 x 11223344 = 624,778,734,443,072 or 5b736a6117d820 in hex
 first half of answer contained in edx and second half (overflow) in EAX.
 
@@ -515,13 +512,14 @@ NOT
 
     (checks if a value is false EG a=0; if (!a) printf("this will print"))
 
-    var2	dw	0xbbcc
-    and word [var2], 0x1122
+var2	dw	0xbbcc
+and word [var2], 0x1122
 
-    comes out as <var2>:	0x1100
-     bitmasking 
+comes out as <var2>:	0x1100
+bitmasking 
 xoring == encoding
 modify the logical program
+
 
 Righto so... bitwise and between two hexadecimal values
 step 1
@@ -586,3 +584,93 @@ restore
 
     move esp, ebp
     pop ebp
+
+#### String instructions
+
+For MOVS and CMPS It is assumed that the source string is referenced by ESI and the destination is sourced by EDI ; they rely on direction flag DF (this being set means copying occurs high to low memory)
+
+moving a string from on place to another
+we move a byte, and then we use REP, which will repeat the byte move until there are none left at source address
+
+To examine a string in ascii, 
+    x/w $sp
+    x/s <address>
+
+### Common string instructions
+
+| Instruction | Description |
+| :--- | :--- |
+| MOVS\* | Move string data from `esi` to `edi` |
+| CMPS\* | Compare string data from `esi` to `edi` |
+| SCAS\* | Search for data defined in `al, ax or eax` in a string addressed in `edi` |
+| STOS\* | Store string data from the accumulator into a string addressed by `edi` |
+| LODS\* | Load memory addressed by `esi` into the accumulator |
+
+## Repeat prefixes
+
+You can repeat string operations using a _repeat prefix_ - like the `loop*` instructions they use the `ecx` register as a counter. E.g.
+
+```text
+mov    esi, my_str
+mov    edi, my_other_str
+mov    ecx, 10
+rep    movsb
+```
+
+#### Libc in nasm
+
+Remember that arguments get pushed on in reverse order
+
+    CALL function(a,b,c,d)
+    PUSH d, PUSH c, PUSH b, PUSH a,
+
+To maintain a proper state for ESP: after libc call returns, adjust the stack accordingly
+
+### Very important to note:
+> Use the extern instruction to define which functions you want to use from other libraries, at the top of your program
+> In this instance, the calling convention is to place arguments on the stack in reverse order
+> Don't mess up the stack pointer! After your function call returns, you will need to recall the location of the stack pointer; "you use some memory on the stack - you take it away, want some back? add"
+> Rather than using the low level linker ld, use gcc to perform the linking stage, as this has better support for linking libc. This means that by default, we would need to use an entry point of main instead of _start
+
+### Stack adjustment (add 0x4)
+
+in simple terms, we are essentially pushing the SP back up to where it was prior to calling.
+We pretty much only need to adjust stack for instructions involving args, as the args go ontop of the intsruction, the SP needs to get back to the top
+EG
+
+1 arg passed = add 4 bytes
+2 arg passed = add 8 bytes
+
+```
+main:
+
+	push message ; 
+	call printf  ; SP is underneath message as per RET, meaning the exit call will have a bonkers argument fed to it
+	;add esp, 0x4  ; adjust the stack 
+
+	push 0x5
+	call exit
+```
+
+#### Shellcoding: basics
+
+Essentially machine code with a specific purpose EG
+    spawn a shell
+    bind to a port
+    create new account
+    any other sneaky and devious task
+
+**It requires NO further assembling, linking or compiling. It can be executed by teh CPU directly**
+
+When shellcode is part of an exploit AKA a payload, pay mind to size of shellcode (smalller is better) and obviously eliminate bad chars (OSCP PTSD)
+
+Your shellcode can be added into an executable which means that:
+    it could run in a seperate thread
+    size no longer a concern
+    bad chars not a concern
+    replace executable functionality
+
+#### Shellcoding: JMP-CALL-POP
+
+To avoid crashes and such, we exploit jmp-call-pop.
+We do NOT at any point want to be referencing an address in our shellcode EG moving "Hello World!" into ecx, we circumvent by by performing a short jump to a call function and within that we POP into ECX, with the next instruction on the stack being the definition of the variable "message: db "Hello World!", 0xA - we are able to not care what the address is.
