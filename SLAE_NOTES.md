@@ -666,6 +666,8 @@ Essentially machine code with a specific purpose EG
 
 **It requires NO further assembling, linking or compiling. It can be executed by teh CPU directly**
 
+*66 RE the above, for details on how to convert binaries to shellcode and such look at the burgers blog here: https://seska.gitbook.io/offsec-learning/courses/pentester-academy/x86-linux-assembly-expert/2-2-exit-shellcode*
+
 When shellcode is part of an exploit AKA a payload, pay mind to size of shellcode (smalller is better) and obviously eliminate bad chars (OSCP PTSD)
 
 Your shellcode can be added into an executable which means that:
@@ -673,6 +675,10 @@ Your shellcode can be added into an executable which means that:
     size no longer a concern
     bad chars not a concern
     replace executable functionality
+
+check for nulls in your binary with
+    objdump -d execve -M intel
+
 
 ## Shellcoding: JMP-CALL-POP
 
@@ -699,11 +705,8 @@ We want "execve"!
 ```
 We need to terminate our arg string containing the target binary with a null.
 So: 
-
 *filename would be /bin/bash, 0x0 inside EBX
-
 *const argv[] would be Address of /bin/bash, 0x00000000 inside ECX
-
 *const envp[] would be 0x00000000 inside EDX
 
 ^^^Unfortunately of course our shellcode cannot contain nulls :O
@@ -746,4 +749,5 @@ call_shellcode:
 	message db "/bin/shABBBBCCCC"
 
 ```
+
 **note** on success execve does NOT return, as such we do not need to exit, further to this on success everything else is overwritten with that of the called program.
