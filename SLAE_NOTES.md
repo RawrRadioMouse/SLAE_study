@@ -699,8 +699,11 @@ We want "execve"!
 ```
 We need to terminate our arg string containing the target binary with a null.
 So: 
+
 *filename would be /bin/bash, 0x0 inside EBX
+
 *const argv[] would be Address of /bin/bash, 0x00000000 inside ECX
+
 *const envp[] would be 0x00000000 inside EDX
 
 ^^^Unfortunately of course our shellcode cannot contain nulls :O
