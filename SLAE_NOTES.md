@@ -784,6 +784,7 @@ _start:
 	int 0x80
 ```
 **when pushing a string onto the stack, in 32bit it needs to be reversed, simplest way to do this is with python.**
+
     code = '<your string>'
     code[::-1]
 Then it needs to be converted to hex, so: 
