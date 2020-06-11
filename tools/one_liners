@@ -10,3 +10,16 @@ examine bytes starting at an address: x/45xb <address>
 break <*&break +X> (* is for break & is address)
         OR simply *0x<address>
 View contents of variable: x/s <memaddress>
+
+
+Getting libemu to work:
+git clone https://github.com/gento/libemu.git
+apt-get install autoconf
+apt-get install libtool
+aclocal -I /usr/share/libtool
+autoheader
+autoreconf -v -i
+./configure --prefix=/opt/libemu; make install
+in /bin: ln -s /opt/libemu/bin/sctest 
+
+ 
