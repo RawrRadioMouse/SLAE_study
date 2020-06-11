@@ -14,7 +14,7 @@ View contents of variable: x/s <memaddress>
 
 
 Getting libemu to work when it doesn't:
-git clone https://github.com/gento/libemu.git
+git clone https://github.com/buffer/libemu.git
 apt-get install autoconf
 apt-get install libtool
 aclocal -I /usr/share/libtool
