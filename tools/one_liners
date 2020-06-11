@@ -4,6 +4,7 @@ extract shellcode from binary:  objdump -d ./execve-stack|grep '[0-9a-f]:'|grep 
 Disassemble shellcode: echo -ne "<shellcode>" | ndisasm -u -
 Disassemble msfvenom payload: msfvenom -p linux/x86/shell_bind_tcp | ndisasm -u -
 
+
 view location of a variable: print /x <variable> 
         OR simply info variables and get them all
 examine bytes starting at an address: x/45xb <address>
@@ -12,7 +13,7 @@ break <*&break +X> (* is for break & is address)
 View contents of variable: x/s <memaddress>
 
 
-Getting libemu to work:
+Getting libemu to work when it doesn't:
 git clone https://github.com/gento/libemu.git
 apt-get install autoconf
 apt-get install libtool
