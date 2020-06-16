@@ -1,3 +1,7 @@
+# Author: RawrRadioMouse
+# Purpose: SLAE
+
+
 #!/usr/bin/python
 
 import sys
