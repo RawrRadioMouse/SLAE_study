@@ -1,3 +1,6 @@
+// Author: RawrRadioMouse
+// Purpose: Modified bind_tcp_shell code for SLAE
+
 #include <stdio.h>
 #include <unistd.h>
 #include <netinet/in.h>
