@@ -1,3 +1,4 @@
+when running with nasm, u are less likely to have weird register states... in the middle of a c program, ebx is gonna be anything.. from _start
 check for nulls and bad chars: objdump -d ./execve-stack -M intel
 extract shellcode from binary:  objdump -d ./execve-stack|grep '[0-9a-f]:'|grep -v 'file'|cut -f2 -d:|cut -f1-6 -d' '|tr -s ' '|tr '\t' ' '|sed 's/ $//g'|sed 's/ /\\x/g'|paste -d '' -s |sed 's/^/"/'|sed 's/$/"/g'
 ^^^Pay attention to the number of opcodes printed from null check and adjust the mah=gic string accordingly at "cut -f1-6 -d' '"
