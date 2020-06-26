@@ -11,6 +11,8 @@ Disassemble msfvenom payload: msfvenom -p linux/x86/shell_bind_tcp | ndisasm -u 
 
 Analyse msfvenom shellcode: msfvenom -p linux/x86/shell_bind_tcp --format raw | sctest -vvv -Ss 5000 (verbose and read form STDIN)
 
+Dump msfvenom payload as hex: msfvenom -p linux/x86/chmod FILE=/test.txt R | hexdump -v -e '"\\x" 1/1 "%02x"'
+
 OUtput to a viual file, first: msfvenom -p linux/x86/shell_bind_tcp --format raw | sctest -vvv -Ss 5000 -G shell_bind_tcp.dot
 Then: dot shell_bind_tcp.dot -T png -o shell_bind_tcp.png
 
