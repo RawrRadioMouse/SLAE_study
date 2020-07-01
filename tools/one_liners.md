@@ -1,6 +1,7 @@
 
 there is no .decode('hex') on Python 3. .decode('hex') uses binascii.unhexlify() on Python 2
 >import binascii
+
 >print (binascii.unhexlify(a))
 
 when running with nasm, u are less likely to have weird register states... in the middle of a c program, ebx is gonna be anything.. from _start
